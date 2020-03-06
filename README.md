@@ -15,6 +15,7 @@ $ inicom {base_file} [{add | subtract} {file} ...]
     add indicates to layer over the top of the base file
     subtract indicates to remove matching sections+keys from the base file. Values in this file are inconsequential.
     repeated adds an subtracts are evaluated in order and operate on the result produced by any prior actions
+  In all cases of valid input, the output of this command will be a normalized version.
 ```
 Example:
 ```
