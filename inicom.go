@@ -2,19 +2,19 @@ package main
 
 import (
 	"fmt"
-    "os"
+	"os"
 
-    "gopkg.in/ini.v1"
+	"gopkg.in/ini.v1"
 )
 
 const (
-	add = "add" // add file indicator - file will be added to the current state
+	add      = "add"      // add file indicator - file will be added to the current state
 	subtract = "subtract" // subtract file indicator - file will be subtracted from the current state
 )
 
 type actionFile struct {
 	action string
-    file *ini.File 
+	file   *ini.File
 }
 
 func errExit(msg string) {
@@ -27,11 +27,11 @@ func usage() {
 	errExit("Usage: inicom {basefile} [{add|subtract} file]...")
 }
 
-func parse(args []string) ([]actionFile) {
+func parse(args []string) []actionFile {
 	var actionFiles []actionFile
 	// use ini package to read in all files and actions with their related files
 	// pattern should be: "action" "file", repeating
-	if len(args) % 2 != 0 {
+	if len(args)%2 != 0 {
 		usage()
 	}
 	for i := 0; i < len(args); i += 2 {
@@ -66,6 +66,5 @@ func main() {
 	os.Stderr.WriteString(fmt.Sprintf("\nbasefile: %T, actionFiles: %d", basefile, len(actionFiles)))
 
 	os.Stderr.WriteString("\nGoodbye\n")
-
 
 }
