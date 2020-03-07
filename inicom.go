@@ -1,30 +1,35 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
 
 	"gopkg.in/ini.v1"
 )
 
-const (
-	add      = "add"      // add file indicator - file will be added to the current state
-	subtract = "subtract" // subtract file indicator - file will be subtracted from the current state
-)
+func validCommand(lookup string) bool {
+	switch lookup {
+	case
+		"add",
+		"subtract":
+		return true
+	}
+	return false
+}
 
 type actionFile struct {
 	action string
+	name   string
 	file   *ini.File
 }
 
-func errExit(msg string) {
-	// print the message to stderr and exit(1)
-	os.Stderr.WriteString(fmt.Sprintf("\n%s\n", msg))
-	os.Exit(1)
+func usage() {
+	log.Fatal("Usage: inicom {basefile} [{add|subtract} file]...")
 }
 
-func usage() {
-	errExit("Usage: inicom {basefile} [{add|subtract} file]...")
+func loadIni(filename string) (*ini.File, error) {
+	// wrapper to set common LoadOptions for loading the files
+	return ini.LoadSources(ini.LoadOptions{AllowPythonMultilineValues: true}, filename)
 }
 
 func parse(args []string) []actionFile {
@@ -35,36 +40,40 @@ func parse(args []string) []actionFile {
 		usage()
 	}
 	for i := 0; i < len(args); i += 2 {
-		os.Stderr.WriteString(fmt.Sprintf("\nparsing args: %s, %s", args[i], args[i+1]))
-		inifile, err := ini.Load(args[i+1])
-		if err != nil {
-			errExit(err.Error())
+		log.Printf("parsing args: %s, %s", args[i], args[i+1])
+		if !validCommand(args[i]) {
+			usage()
 		}
-		actionFiles = append(actionFiles, actionFile{args[i], inifile})
+		inifile, err := loadIni(args[i+1])
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		actionFiles = append(actionFiles, actionFile{args[i], args[i+1], inifile})
 	}
 	return actionFiles
 }
 
 func main() {
 	args := os.Args[1:]
-	// debug. remove?
-	os.Stderr.WriteString(fmt.Sprintf("Args are %v", args))
+	log.Printf("\nArgs are %v\n", args)
 	if len(args) < 1 {
 		usage()
 	}
 	// acquire basefile
-	basefile, err := ini.Load(args[0])
+	basefile, err := loadIni(args[0])
 	if err != nil {
-		errExit(err.Error())
+		log.Fatal(err.Error())
 	}
 
 	// convert remainder of args to actions+files
 	actionFiles := parse(args[1:])
+	log.Printf("basefile: %T", basefile)
+	for _, af := range actionFiles {
+		log.Printf("action: %s: %s", af.action, af.name)
+	}
 
-	//TODO manipulate ini per command
-	//TODO write output to stdout
-	os.Stderr.WriteString(fmt.Sprintf("\nbasefile: %T, actionFiles: %d", basefile, len(actionFiles)))
+	//TODO manipulate ini per command in order. Apply changes to basefile
 
-	os.Stderr.WriteString("\nGoodbye\n")
-
+	basefile.WriteTo(os.Stdout)
+	log.Println("Goodbye")
 }
