@@ -29,7 +29,7 @@ func usage() {
 
 func loadIni(filename string) (*ini.File, error) {
 	// wrapper to set common LoadOptions for loading the files
-	return ini.LoadSources(ini.LoadOptions{AllowPythonMultilineValues: true}, filename)
+	return ini.LoadSources(ini.LoadOptions{AllowPythonMultilineValues: true, Insensitive: true}, filename)
 }
 
 func parse(args []string) []actionFile {
@@ -53,9 +53,29 @@ func parse(args []string) []actionFile {
 	return actionFiles
 }
 
+func add(basefile *ini.File, addfile *ini.File) {
+	// modify basefile to add the contents of addfile
+	for _, section := range addfile.Sections() {
+		basesection, err := basefile.GetSection(section.Name())
+		if err != nil {
+			log.Printf("Adding section [%s]", section.Name())
+			basesection, _ = basefile.NewSection(section.Name())
+		}
+		for _, key := range section.Keys() {
+			if basesection.HasKey(key.Name()) {
+				basekey, _ := basesection.GetKey(key.Name())
+				log.Printf("Overriding key '%s' in section [%s]", key.Name(), section.Name())
+				basekey.SetValue(key.String())
+			} else {
+				log.Printf("Adding key '%s' to section [%s]", key.Name(), section.Name())
+				basesection.NewKey(key.Name(), key.String())
+			}
+		}
+	}
+}
+
 func main() {
 	args := os.Args[1:]
-	log.Printf("\nArgs are %v\n", args)
 	if len(args) < 1 {
 		usage()
 	}
@@ -67,13 +87,14 @@ func main() {
 
 	// convert remainder of args to actions+files
 	actionFiles := parse(args[1:])
-	log.Printf("basefile: %T", basefile)
 	for _, af := range actionFiles {
 		log.Printf("action: %s: %s", af.action, af.name)
+		switch af.action {
+		case "add":
+			add(basefile, af.file)
+		case "subtract":
+			log.Println("subtract not yet implemented")
+		}
 	}
-
-	//TODO manipulate ini per command in order. Apply changes to basefile
-
 	basefile.WriteTo(os.Stdout)
-	log.Println("Goodbye")
 }
