@@ -74,6 +74,30 @@ func add(basefile *ini.File, addfile *ini.File) {
 	}
 }
 
+func subtract(basefile *ini.File, subfile *ini.File) {
+	// modify basefile to remove keys using the contents of subfile
+	for _, section := range subfile.Sections() {
+		basesection, err := basefile.GetSection(section.Name())
+		if err != nil {
+			log.Printf("Section [%s] not present, nothing to remove", section.Name())
+		} else {
+			// section exists, deal with keys
+			for _, key := range section.Keys() {
+				if basesection.HasKey(key.Name()) {
+					log.Printf("Deleting key '%s' in section [%s]", key.Name(), section.Name())
+					basesection.DeleteKey(key.Name())
+				} else {
+					log.Printf("Key '%s' doesn't exist in section [%s]", key.Name(), section.Name())
+				}
+			}
+			if section.Name() != "default" && len(basesection.Keys()) == 0 {
+				log.Printf("Section [%s] is now empty and is being removed.", section.Name())
+				basefile.DeleteSection(section.Name())
+			}
+		}
+	}
+}
+
 func main() {
 	args := os.Args[1:]
 	if len(args) < 1 {
@@ -93,7 +117,7 @@ func main() {
 		case "add":
 			add(basefile, af.file)
 		case "subtract":
-			log.Println("subtract not yet implemented")
+			subtract(basefile, af.file)
 		}
 	}
 	basefile.WriteTo(os.Stdout)

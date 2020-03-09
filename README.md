@@ -30,5 +30,7 @@ $ inicom basefile.ini add addfile.ini subtract subfile.ini add add2file.ini > ne
 
 Backlog:
 - TODO: initial version
-- TODO: test samples
-- TODO: empty sections pruning switch
+- TODO: unit tests
+- TODO: Dockerfile build
+- TODO: publish to a docker repository
+- TODO: automation of builds
