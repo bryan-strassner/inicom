@@ -4,6 +4,7 @@ A Go implementation of a command line ini manipulator, allowing for adding and s
 Rules:
 - Never modify input files
 - Write output to stdout
+- Try to conform to https://github.com/golang-standards/project-layout
 
 Commands:
 ```
@@ -27,6 +28,8 @@ Example:
 
 $ inicom basefile.ini add addfile.ini subtract subfile.ini add add2file.ini > newfile.ini
 ```
+
+
 
 Backlog:
 - TODO: initial version

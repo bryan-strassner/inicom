@@ -1,11 +1,17 @@
-package main
+package inicom
 
 import (
+	"fmt"
 	"log"
-	"os"
 
 	"gopkg.in/ini.v1"
 )
+
+type ActionFile struct {
+	action string
+	name   string
+	file   *ini.File
+}
 
 func validCommand(lookup string) bool {
 	switch lookup {
@@ -17,43 +23,34 @@ func validCommand(lookup string) bool {
 	return false
 }
 
-type actionFile struct {
-	action string
-	name   string
-	file   *ini.File
-}
-
-func usage() {
-	log.Fatal("Usage: inicom {basefile} [{add|subtract} file]...")
-}
-
 func loadIni(filename string) (*ini.File, error) {
 	// wrapper to set common LoadOptions for loading the files
 	return ini.LoadSources(ini.LoadOptions{AllowPythonMultilineValues: true, Insensitive: true}, filename)
 }
 
-func parse(args []string) []actionFile {
-	var actionFiles []actionFile
+// Parse : parse the inicom inputs and return the "ActionFile" structs
+func Parse(args []string) ([]ActionFile, error) {
+	var actionFiles []ActionFile
 	// use ini package to read in all files and actions with their related files
 	// pattern should be: "action" "file", repeating
 	if len(args)%2 != 0 {
-		usage()
+		return actionFiles, fmt.Errorf("the number of arguments must be an even number in the pattern <action> <object-of-action>")
 	}
 	for i := 0; i < len(args); i += 2 {
 		log.Printf("parsing args: %s, %s", args[i], args[i+1])
 		if !validCommand(args[i]) {
-			usage()
+			return actionFiles, fmt.Errorf("invalid args: %s, %s", args[i], args[i+1])
 		}
 		inifile, err := loadIni(args[i+1])
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		actionFiles = append(actionFiles, actionFile{args[i], args[i+1], inifile})
+		actionFiles = append(actionFiles, ActionFile{args[i], args[i+1], inifile})
 	}
-	return actionFiles
+	return actionFiles, nil
 }
 
-func add(basefile *ini.File, addfile *ini.File) {
+func Add(basefile *ini.File, addfile *ini.File) {
 	// modify basefile to add the contents of addfile
 	for _, section := range addfile.Sections() {
 		basesection, err := basefile.GetSection(section.Name())
@@ -74,7 +71,7 @@ func add(basefile *ini.File, addfile *ini.File) {
 	}
 }
 
-func subtract(basefile *ini.File, subfile *ini.File) {
+func Subtract(basefile *ini.File, subfile *ini.File) {
 	// modify basefile to remove keys using the contents of subfile
 	for _, section := range subfile.Sections() {
 		basesection, err := basefile.GetSection(section.Name())
@@ -96,29 +93,4 @@ func subtract(basefile *ini.File, subfile *ini.File) {
 			}
 		}
 	}
-}
-
-func main() {
-	args := os.Args[1:]
-	if len(args) < 1 {
-		usage()
-	}
-	// acquire basefile
-	basefile, err := loadIni(args[0])
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-	// convert remainder of args to actions+files
-	actionFiles := parse(args[1:])
-	for _, af := range actionFiles {
-		log.Printf("action: %s: %s", af.action, af.name)
-		switch af.action {
-		case "add":
-			add(basefile, af.file)
-		case "subtract":
-			subtract(basefile, af.file)
-		}
-	}
-	basefile.WriteTo(os.Stdout)
 }
