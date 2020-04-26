@@ -34,7 +34,7 @@ func Parse(args []string) ([]ActionFile, error) {
 	// use ini package to read in all files and actions with their related files
 	// pattern should be: "action" "file", repeating
 	if len(args)%2 != 0 {
-		return actionFiles, fmt.Errorf("the number of arguments must be an even number in the pattern <action> <object-of-action>")
+		return actionFiles, fmt.Errorf("the number of arguments following the base file must be an even number in the pattern <action> <object-of-action>")
 	}
 	for i := 0; i < len(args); i += 2 {
 		log.Printf("parsing args: %s, %s", args[i], args[i+1])
