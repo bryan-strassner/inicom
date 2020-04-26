@@ -29,11 +29,8 @@ Example:
 $ inicom basefile.ini add addfile.ini subtract subfile.ini add add2file.ini > newfile.ini
 ```
 
-
+Images build to:
+quay.io/bryan_strassner/inicom
 
 Backlog:
-- TODO: initial version
-- TODO: unit tests
-- TODO: Dockerfile build
-- TODO: publish to a docker repository
-- TODO: automation of builds
+ TODO: add commands for addval / subval to add and remove specific keys

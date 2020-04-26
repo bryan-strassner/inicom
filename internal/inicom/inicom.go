@@ -23,9 +23,14 @@ func validCommand(lookup string) bool {
 	return false
 }
 
-func LoadIni(filename string) (*ini.File, error) {
+func loadIni(filename string) (*ini.File, error) {
 	// wrapper to set common LoadOptions for loading the files
 	return ini.LoadSources(ini.LoadOptions{AllowPythonMultilineValues: true, Insensitive: true}, filename)
+}
+
+// Basefile : acquire the basefile as an ini File
+func Basefile(filename string) (*ini.File, error) {
+	return loadIni(filename)
 }
 
 // Parse : parse the inicom inputs and return the "ActionFile" structs
@@ -41,7 +46,7 @@ func Parse(args []string) ([]ActionFile, error) {
 		if !validCommand(args[i]) {
 			return actionFiles, fmt.Errorf("invalid args: %s, %s", args[i], args[i+1])
 		}
-		inifile, err := LoadIni(args[i+1])
+		inifile, err := loadIni(args[i+1])
 		if err != nil {
 			log.Fatal(err.Error())
 		}
@@ -50,8 +55,21 @@ func Parse(args []string) ([]ActionFile, error) {
 	return actionFiles, nil
 }
 
-func Add(basefile *ini.File, addfile *ini.File) {
-	// modify basefile to add the contents of addfile
+// Process : modify basefile with actions specified by actions
+func Process(basefile *ini.File, actionFiles []ActionFile) {
+	for _, af := range actionFiles {
+		log.Printf("action: %s: %s", af.Action, af.Name)
+		switch af.Action {
+		case "add":
+			add(basefile, af.File)
+		case "subtract":
+			subtract(basefile, af.File)
+		}
+	}
+}
+
+// add : modify basefile by adding the contents of addfile
+func add(basefile *ini.File, addfile *ini.File) {
 	for _, section := range addfile.Sections() {
 		basesection, err := basefile.GetSection(section.Name())
 		if err != nil {
@@ -71,8 +89,8 @@ func Add(basefile *ini.File, addfile *ini.File) {
 	}
 }
 
-func Subtract(basefile *ini.File, subfile *ini.File) {
-	// modify basefile to remove keys using the contents of subfile
+// subtract : modify basefile by removing the keys specified in subfile
+func subtract(basefile *ini.File, subfile *ini.File) {
 	for _, section := range subfile.Sections() {
 		basesection, err := basefile.GetSection(section.Name())
 		if err != nil {

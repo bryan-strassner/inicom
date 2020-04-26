@@ -17,7 +17,7 @@ func main() {
 		usage()
 	}
 	// acquire basefile
-	basefile, err := inicom.LoadIni(args[0])
+	basefile, err := inicom.Basefile(args[0])
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -25,17 +25,13 @@ func main() {
 	// convert remainder of args to actions+files
 	actionFiles, err := inicom.Parse(args[1:])
 	if err != nil {
-		log.Println(err)
-		usage()
+		log.Fatal(err.Error())
 	}
-	for _, af := range actionFiles {
-		log.Printf("action: %s: %s", af.Action, af.Name)
-		switch af.Action {
-		case "add":
-			inicom.Add(basefile, af.File)
-		case "subtract":
-			inicom.Subtract(basefile, af.File)
-		}
+
+	inicom.Process(basefile, actionFiles)
+	if err != nil {
+		log.Fatal(err.Error())
 	}
+
 	basefile.WriteTo(os.Stdout)
 }
