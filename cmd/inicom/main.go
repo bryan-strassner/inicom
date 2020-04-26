@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/bryan-strassner/inicom"
+	"github.com/bryan-strassner/inicom/inicom"
 )
 
 func usage() {
