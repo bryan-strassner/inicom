@@ -8,9 +8,9 @@ import (
 )
 
 type ActionFile struct {
-	action string
-	name   string
-	file   *ini.File
+	Action string
+	Name   string
+	File   *ini.File
 }
 
 func validCommand(lookup string) bool {
@@ -23,7 +23,7 @@ func validCommand(lookup string) bool {
 	return false
 }
 
-func loadIni(filename string) (*ini.File, error) {
+func LoadIni(filename string) (*ini.File, error) {
 	// wrapper to set common LoadOptions for loading the files
 	return ini.LoadSources(ini.LoadOptions{AllowPythonMultilineValues: true, Insensitive: true}, filename)
 }
@@ -41,7 +41,7 @@ func Parse(args []string) ([]ActionFile, error) {
 		if !validCommand(args[i]) {
 			return actionFiles, fmt.Errorf("invalid args: %s, %s", args[i], args[i+1])
 		}
-		inifile, err := loadIni(args[i+1])
+		inifile, err := LoadIni(args[i+1])
 		if err != nil {
 			log.Fatal(err.Error())
 		}

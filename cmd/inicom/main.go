@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/bryan-strassner/inicom/inicom"
+	"github.com/bryan-strassner/inicom/internal/inicom"
 )
 
 func usage() {
@@ -23,14 +23,18 @@ func main() {
 	}
 
 	// convert remainder of args to actions+files
-	actionFiles := inicom.Parse(args[1:])
+	actionFiles, err := inicom.Parse(args[1:])
+	if err != nil {
+		log.Println(err)
+		usage()
+	}
 	for _, af := range actionFiles {
-		log.Printf("action: %s: %s", af.action, af.name)
-		switch af.action {
+		log.Printf("action: %s: %s", af.Action, af.Name)
+		switch af.Action {
 		case "add":
-			inicom.Add(basefile, af.file)
+			inicom.Add(basefile, af.File)
 		case "subtract":
-			inicom.Subtract(basefile, af.file)
+			inicom.Subtract(basefile, af.File)
 		}
 	}
 	basefile.WriteTo(os.Stdout)
